@@ -1,0 +1,62 @@
+services:
+  app:
+    build: .
+    depends_on:
+      mongo:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=mongodb://mongo2:27017/${MONGODB_DB_NAME}?replicaSet=rs0
+    develop:
+      watch:
+        - path: .
+          target: /usr/src/app
+          action: sync
+    ports:
+      - "${PORT}:${PORT}"
+    networks:
+      - notification_service_network
+    command: ["pnpm", "docker-dev"]
+
+  mongo:
+    image: mongo:latest 
+    container_name: "mongo"
+    hostname: mongo2
+    command: ["--replSet", "rs0", "--bind_ip", "127.0.0.1,mongo2", "--port", "27017"]
+    volumes:
+      - dev_flarecast_notification_service_mongodb_data_2:/data/db
+      # - dev_flarecast_notification_service_mongodb_config:/data/configdb
+    networks:
+      - notification_service_network
+    ports:
+      - 27017:27017
+    healthcheck:
+      test: echo "try {rs.status()} catch(err) {rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo2:27017',priority:1}]})}" | mongosh --port 27017 --quiet
+      interval: 5m # Check more frequently during startup
+      timeout: 10s # Reduce timeout
+      retries: 3 # Increase retries
+      start_period: 10s # Give it time to start
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_BASICAUTH: false
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: false
+      ME_CONFIG_MONGODB_URL: mongodb://mongo2:27017?replicaSet=rs0
+    depends_on: # Make sure mongo is ready
+      mongo:
+        condition: service_healthy
+    networks:
+      - notification_service_network
+
+volumes:
+  dev_flarecast_notification_service_mongodb_data_2:
+  dev_flarecast_notification_service_mongodb_config:
+
+networks:
+  notification_service_network:
+    driver: bridge

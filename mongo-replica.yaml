@@ -1,0 +1,66 @@
+networks:
+  mongo-cluster:
+    driver: bridge
+
+volumes:
+  mongo1-data:
+  # mongo2-data:
+  mongo4-data:
+
+services:
+  mongo1:
+    container_name: mongo_rs0
+    image: mongo
+    hostname: mongo1
+    command: ["--replSet", "rs0", "--bind_ip", "127.0.0.1,mongo1", "--port", "27017"]
+    volumes:
+      - mongo4-data:/data/db
+    ports:
+      - 27017:27017
+    networks:
+      - mongo-cluster
+    healthcheck:
+      test: echo "try {rs.status()} catch(err) {rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo1:27017',priority:1}]})}" | mongosh --port 27017 --quiet
+      interval: 5m
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # mongo2:
+  #   container_name: mongo_rs1
+  #   image: mongo
+  #   hostname: mongo2
+  #   command: ["--replSet", "rs0", "--bind_ip", "127.0.0.1,mongo2", "--port", "27018"]
+  #   volumes:
+  #     - mongo2-data:/data/db
+  #   ports:
+  #     - 27018:27017
+  #   networks:
+  #     - mongo-cluster
+     
+  # mongo3:
+  #   container_name: mongo_rs2
+  #   image: mongo
+  #   hostname: mongo3
+  #   command: ["--replSet", "rs0", "--bind_ip", "127.0.0.1,mongo3", "--port", "27019"]
+  #   volumes:
+  #     - mongo3-data:/data/db
+  #   ports:
+  #     - 27019:27017
+  #   networks:
+  #     - mongo-cluster
+     
+  mongo-express:
+    container_name: mongo-express
+    image: mongo-express
+    ports:
+      - 8081:8081
+    networks:
+      - mongo-cluster
+    environment:
+      ME_CONFIG_BASICAUTH: false
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: false
+      ME_CONFIG_MONGODB_URL: mongodb://mongo1:27017?replicaSet=rs0
+    depends_on:
+      mongo1:
+        condition: service_healthy
