@@ -1,6 +1,7 @@
 services:
   notification-app:
     build: .
+    image: ananthutd2003/flarecast-notification-service
     container_name: notification-app
     depends_on:
       notification-mongo:
@@ -8,7 +9,7 @@ services:
     env_file:
       - .env
     environment:
-      - DATABASE_URL=mongodb://notification-mongo:27017/${MONGODB_DB_NAME}?replicaSet=rs0
+      - DATABASE_URL=mongodb://notification-mongo:27017/${DB_NAME}?replicaSet=rs0
     develop:
       watch:
         - path: .
@@ -18,6 +19,7 @@ services:
       - "${PORT}:${PORT}"
     networks:
       - notification-network
+      - kafka_kafka-network
     command: ["pnpm", "docker-dev"]
 
   notification-mongo:
@@ -59,3 +61,5 @@ volumes:
 networks:
   notification-network:
     driver: bridge
+  kafka_kafka-network:
+    external: true
