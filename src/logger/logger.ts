@@ -13,7 +13,7 @@ const options = {
   transports: [
     new LokiTransport({
       host: env.GRAFANA_HOST, 
-      labels: { app: 'user-service' }, 
+      labels: { app: 'notification-service' }, 
       json: true,                 
       basicAuth: basicAuthentication,
       replaceTimestamp: true,      
