@@ -18,25 +18,3 @@ export async function sendMessage(topic: string, message: string) {
 		logger.error("🔴 Failed to send message to " + topic, error);
 	}
 }
-
-export const sendUserVerifiedEvent = async (
-	userId: string,
-	firstName: string
-) => {
-	await sendMessage(TOPICS.USER_VERIFIED_EVENT, JSON.stringify({ userId, firstName }));
-	logger.debug(
-		"✔️ user-event sended to kafka: " +
-			JSON.stringify({ userId, firstName }, null, 2)
-	);
-};
-
-export const sendUserCreationEvent = async (
-	userId: string,
-	email: string
-) => {
-	await sendMessage(TOPICS.USER_CREATED_EVENT, JSON.stringify({ userId, email }));
-	logger.debug(
-		`✔️ ${TOPICS.USER_CREATED_EVENT} sended to kafka: ` +
-			JSON.stringify({ userId, email }, null, 2)
-	);
-};

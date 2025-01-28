@@ -7,15 +7,10 @@ const consumer = kafka.consumer({
 	groupId: "notification-service",
 });
 
-interface UserCreateMessage {
-	userId: string;
-	email: string;
-}
-
 export async function consumeMessages(
 	topics: TOPICS[],
 	cb: (
-		value: object,
+		value: any,
 		topic: string,
 		partition: number,
 		message: KafkaMessage

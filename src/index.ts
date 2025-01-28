@@ -1,6 +1,5 @@
 import app from "./app";
 import env from "./env";
-import prisma from "./prismaClient";
 import './kafka'
 import { logger } from "./logger/logger";
 

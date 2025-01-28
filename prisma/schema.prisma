@@ -8,22 +8,25 @@ datasource db {
 }
 
 model User {
-  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
   username String
-  email    String @unique
-  userId   String @unique
+  email    String
+  userId   String
   fcmToken String?
 
-  firstViewPushNotifications                      Boolean @default(true)
-  firstViewEmail                                  Boolean @default(true)
-  commentsAndReplayPushNotifications              Boolean @default(true)
-  commentsAndReplayEmail                          Boolean @default(true)
-  transcriptGenerationCompletionPushNotifications Boolean @default(true)
-  transcriptGenerationCompletionEmail             Boolean @default(true)
-  transcriptGenerationFailsPushNotifications      Boolean @default(true)
-  transcriptGenerationFailsEmail                  Boolean @default(true)
-  videoSharePushNotifications                     Boolean @default(true)
-  videoShareEmail                                 Boolean @default(true)
-  removesFromWorkspacePushNotifications           Boolean @default(true)
-  removesFromWorkspaceEmail                       Boolean @default(true)
+  //  if new preferences are added make sure to update it in the prismaClient middleware
+  firstViewNotifications          NotifChannelPrefs?
+  commentNotifications            NotifChannelPrefs?
+  transcriptSuccessNotifications  NotifChannelPrefs?
+  transcriptFailureNotifications  NotifChannelPrefs?
+  shareNotifications              NotifChannelPrefs?
+  removeFromWorkspaceNotification NotifChannelPrefs?
+
+  @@index([email])
+  @@index([userId])
+}
+
+type NotifChannelPrefs {
+  email Boolean @default(true)
+  push  Boolean @default(true)
 }

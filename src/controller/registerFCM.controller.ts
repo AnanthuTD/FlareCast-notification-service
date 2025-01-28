@@ -41,7 +41,7 @@ export const registerFCMTokenController = <RequestHandler>(async (req, res) => {
 });
 
 // TODO: REMOVE ON PRODUCTION
-prisma.user.create({
+/* prisma.user.create({
 	data: {
 		userId: "67978c4f0441d1c2453927a3",
 		email: "ananthu.td.dev@gmail.com",
@@ -49,4 +49,4 @@ prisma.user.create({
 	},
 }).catch( (error)=> {
 	console.error("Error creating user:", error);
-});
+}); */
