@@ -7,9 +7,23 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
-  id       String   @id @default(auto()) @db.ObjectId @map("_id")
-  username String   @unique
-  email    String   @unique
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  username String
+  email    String @unique
+  userId   String @unique
+  fcmToken String?
+
+  firstViewPushNotifications                      Boolean @default(true)
+  firstViewEmail                                  Boolean @default(true)
+  commentsAndReplayPushNotifications              Boolean @default(true)
+  commentsAndReplayEmail                          Boolean @default(true)
+  transcriptGenerationCompletionPushNotifications Boolean @default(true)
+  transcriptGenerationCompletionEmail             Boolean @default(true)
+  transcriptGenerationFailsPushNotifications      Boolean @default(true)
+  transcriptGenerationFailsEmail                  Boolean @default(true)
+  videoSharePushNotifications                     Boolean @default(true)
+  videoShareEmail                                 Boolean @default(true)
+  removesFromWorkspacePushNotifications           Boolean @default(true)
+  removesFromWorkspaceEmail                       Boolean @default(true)
 }
