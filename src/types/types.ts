@@ -1,6 +1,13 @@
 
-
-// Define specific interfaces for each event type
+export enum NOTIFICATION_EVENT_TYPE {
+  FIRST_VIEW = "firstView",
+  COMMENT = "comment",
+  TRANSCRIPT_SUCCESS = "transcript-success",
+  TRANSCRIPT_FAILURE = "transcript-failure",
+  WORKSPACE_REMOVE = "workspace-remove",
+  WORKSPACE_DELETE = "workspace-delete",
+  VIDEO_SHARE = "video-share",
+}
 
 export interface FirstViewNotificationEvent {
 	eventType: NOTIFICATION_EVENT_TYPE.FIRST_VIEW;
@@ -24,6 +31,7 @@ export interface TranscriptSuccessNotificationEvent {
 	eventType: NOTIFICATION_EVENT_TYPE.TRANSCRIPT_SUCCESS;
 	userId: string;
 	videoId: string;
+	videoName: string;
 	timestamp: number;
 }
 

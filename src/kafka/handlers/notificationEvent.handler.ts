@@ -21,17 +21,7 @@ import {
 
 import { logger } from "../../logger/logger";
 import prisma from "../../prismaClient";
-import { NotificationEvent } from "../../types/types";
-
-export enum NOTIFICATION_EVENT_TYPE {
-  FIRST_VIEW = "firstView",
-  COMMENT = "comment",
-  TRANSCRIPT_SUCCESS = "transcript-success",
-  TRANSCRIPT_FAILURE = "transcript-failure",
-  WORKSPACE_REMOVE = "workspace-remove",
-  WORKSPACE_DELETE = "workspace-delete",
-  VIDEO_SHARE = "video-share",
-}
+import { NOTIFICATION_EVENT_TYPE, NotificationEvent } from "../../types/types";
 
 /**
  * Helper function to retrieve user and process notifications based on preferences.
@@ -163,7 +153,7 @@ export const notificationEventHandler = async (event: NotificationEvent) => {
         break;
 
       default:
-        logger.warn(`Unhandled notification event type: ${event.eventType}`);
+        logger.warn(`Unhandled notification event type: ${(event as any).eventType}`);
     }
   } catch (error) {
     logger.error(`Error processing event type ${event.eventType}:`, error);
