@@ -8,10 +8,9 @@ datasource db {
 }
 
 model User {
-  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  id       String @id @map("_id") @db.ObjectId
   username String
-  email    String 
-  userId   String
+  email    String
   fcmToken String?
 
   //  if new preferences are added make sure to update it in the prismaClient middleware
@@ -21,12 +20,41 @@ model User {
   transcriptFailureNotifications  NotifChannelPrefs?
   shareNotifications              NotifChannelPrefs?
   removeFromWorkspaceNotification NotifChannelPrefs?
+  workspaceDeleteNotification NotifChannelPrefs?
+  Notification                    Notification[]
 
   @@index([email])
-  @@index([userId])
 }
 
 type NotifChannelPrefs {
   email Boolean @default(true)
   push  Boolean @default(true)
+}
+
+model Notification {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String      @db.ObjectId
+  title     String
+  content   String
+  type      NotifType
+  status    NotifStatus @default(UNREAD)
+  createdAt DateTime    @default(now())
+
+  @@index([userId])
+}
+
+enum NotifType {
+  COMMENT
+  TRANSCRIPT_SUCCESS
+  TRANSCRIPT_FAILURE
+  SHARE
+  REMOVED_FROM_WORKSPACE
+  WORKSPACE_INVITATION
+}
+
+enum NotifStatus {
+  UNREAD
+  READ
+  DISMISSED
 }
