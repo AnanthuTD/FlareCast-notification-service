@@ -20,7 +20,7 @@ services:
     networks:
       - notification-network
       - kafka_kafka-network
-    command: ["pnpm", "docker-dev"]
+    command: ["pnpm", "docker:dev"]
 
   notification-mongo:
     image: mongo:latest
