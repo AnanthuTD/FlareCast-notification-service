@@ -8,7 +8,7 @@ datasource db {
 }
 
 model User {
-  id       String @id @map("_id") @db.ObjectId
+  id       String  @id @map("_id") @db.ObjectId
   username String
   email    String
   fcmToken String?
@@ -20,7 +20,8 @@ model User {
   transcriptFailureNotifications  NotifChannelPrefs?
   shareNotifications              NotifChannelPrefs?
   removeFromWorkspaceNotification NotifChannelPrefs?
-  workspaceDeleteNotification NotifChannelPrefs?
+  workspaceDeleteNotification     NotifChannelPrefs?
+  workspaceInvitationNotification NotifChannelPrefs?
   Notification                    Notification[]
 
   @@index([email])

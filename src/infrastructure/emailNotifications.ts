@@ -12,18 +12,19 @@ enum EMAIL_TEMPLATES {
 	WORKSPACE_REMOVE = "workspace_remove",
 	WORKSPACE_DELETE = "workspace_delete",
 	VIDEO_SHARE = "video_share",
+	WORKSPACE_INVITATION = "workspace_invitation",
 }
 
 /**
  * Generic function to send email notifications.
  */
 function sendEmailNotification(
-	user: User,
+	user: User | null,
 	data: NotificationEvent,
 	template: EMAIL_TEMPLATES
 ) {
-	if (!user.email) {
-		logger.warn(`Skipping email notification: User ${user.id} has no email.`);
+	if (!user?.email) {
+		logger.warn(`Skipping email notification: User ${user?.id} has no email.`);
 		return;
 	}
 
@@ -64,3 +65,16 @@ export const sendWorkspaceDeleteEmail = (user: User, data: NotificationEvent) =>
 
 export const sendVideoShareEmail = (user: User, data: NotificationEvent) =>
 	sendEmailNotification(user, data, EMAIL_TEMPLATES.VIDEO_SHARE);
+
+export const sendWorkspaceInvitationEmail = (
+	user: User | null,
+	data: NotificationEvent
+) => {
+	const message = {
+		template: EMAIL_TEMPLATES.WORKSPACE_INVITATION,
+		...data,
+	};
+
+	// Send message to the email notification service via Kafka
+	sendMessage(TOPICS.EMAIL_NOTIFICATION, JSON.stringify(message));
+};

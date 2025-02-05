@@ -1,12 +1,12 @@
-
 export enum NOTIFICATION_EVENT_TYPE {
-  FIRST_VIEW = "firstView",
-  COMMENT = "comment",
-  TRANSCRIPT_SUCCESS = "transcript-success",
-  TRANSCRIPT_FAILURE = "transcript-failure",
-  WORKSPACE_REMOVE = "workspace-remove",
-  WORKSPACE_DELETE = "workspace-delete",
-  VIDEO_SHARE = "video-share",
+	FIRST_VIEW = "firstView",
+	COMMENT = "comment",
+	TRANSCRIPT_SUCCESS = "transcript_success",
+	TRANSCRIPT_FAILURE = "transcript_failure",
+	WORKSPACE_REMOVE = "workspace_remove",
+	WORKSPACE_DELETE = "workspace_delete",
+	VIDEO_SHARE = "video_share",
+	WORKSPACE_INVITATION = "workspace_invitation",
 }
 
 export interface FirstViewNotificationEvent {
@@ -68,6 +68,20 @@ export interface VideoShareNotificationEvent {
 	timestamp: number;
 }
 
+export interface WorkspaceInvitationNotificationEvent {
+	eventType: NOTIFICATION_EVENT_TYPE.WORKSPACE_INVITATION;
+	senderId: string;
+	invites: {
+		receiverEmail: string;
+		url: string;
+		receiverId?: string;
+	}[];
+	workspaceId: string;
+	workspaceName: string;
+	timestamp: number;
+	userId: null
+}
+
 // Union type for all possible notification events
 export type NotificationEvent =
 	| FirstViewNotificationEvent
@@ -76,4 +90,5 @@ export type NotificationEvent =
 	| TranscriptFailureNotificationEvent
 	| WorkspaceRemoveNotificationEvent
 	| WorkspaceDeleteNotificationEvent
-	| VideoShareNotificationEvent;
+	| VideoShareNotificationEvent
+	| WorkspaceInvitationNotificationEvent;

@@ -5,6 +5,7 @@ import { KafkaMessage } from "kafkajs";
 
 const consumer = kafka.consumer({
 	groupId: "notification-service",
+  allowAutoTopicCreation: true,
 });
 
 type TopicHandler = (

@@ -13,7 +13,7 @@ export const handleUserVerifiedEvent = async (value: UserVerifiedEvent) => {
 	try {
 		await prisma.user.create({
 			data: {
-				userId: value.userId,
+				id: value.userId,
 				email: value.email,
 				username: value.firstName,
 			},
