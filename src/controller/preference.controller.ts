@@ -9,7 +9,7 @@ export class PreferenceController {
 		try {
 			const preferences = await prisma.user.findFirst({
 				where: {
-					userId,
+					id: userId,
 				},
 				select: {
 					removeFromWorkspaceNotification: true,
@@ -46,7 +46,7 @@ export class PreferenceController {
 
 		try {
 			const updatedUser = await prisma.user.updateMany({
-				where: { userId },
+				where: { id: userId },
 				data: {
 					[data.preferenceId]: {
 						[data.type]: data.checked,

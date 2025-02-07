@@ -17,7 +17,7 @@ export const registerFCMTokenController = <RequestHandler>(async (req, res) => {
 	try {
 		// Update the FCM token for the delivery partner
 		const updatedUser = await prisma.user.update({
-			where: { userId: user.id },
+			where: { id: user.id },
 			data: { fcmToken },
 			select: { id: true },
 		});

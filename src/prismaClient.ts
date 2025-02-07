@@ -18,6 +18,8 @@ const prisma = new PrismaClient().$extends({
 				data.transcriptFailureNotifications ??= defaultPreferenceObject;
 				data.shareNotifications ??= defaultPreferenceObject;
 				data.removeFromWorkspaceNotification ??= defaultPreferenceObject;
+				data.workspaceDeleteNotification ??= defaultPreferenceObject;
+				data.workspaceInvitationNotification ??= defaultPreferenceObject;
 
 				args.data = data;
 

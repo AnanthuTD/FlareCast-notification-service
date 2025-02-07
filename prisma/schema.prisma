@@ -33,25 +33,36 @@ type NotifChannelPrefs {
 }
 
 model Notification {
-  id        String      @id @default(auto()) @map("_id") @db.ObjectId
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String      @db.ObjectId
+  id        String           @id @default(auto()) @map("_id") @db.ObjectId
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String           @db.ObjectId
   title     String
   content   String
   type      NotifType
-  status    NotifStatus @default(UNREAD)
-  createdAt DateTime    @default(now())
+  status    NotifStatus      @default(UNREAD)
+  createdAt DateTime         @default(now())
+  data      NotificationData
 
   @@index([userId])
 }
 
+// any data specific to a notification
+type NotificationData {
+  invitationId String? @db.ObjectId
+  invitationStatus String?
+  url String? 
+}
+
 enum NotifType {
+  FIRST_VIEW
   COMMENT
   TRANSCRIPT_SUCCESS
   TRANSCRIPT_FAILURE
   SHARE
-  REMOVED_FROM_WORKSPACE
+  WORKSPACE_REMOVE
   WORKSPACE_INVITATION
+  WORKSPACE_DELETE
+  VIDEO_SHARE
 }
 
 enum NotifStatus {

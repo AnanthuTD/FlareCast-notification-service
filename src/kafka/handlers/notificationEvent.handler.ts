@@ -1,4 +1,4 @@
-import { User } from "@prisma/client";
+import { Notification, User } from "@prisma/client";
 import {
 	sendFirstViewEmail,
 	sendCommentEmail,
@@ -7,7 +7,7 @@ import {
 	sendWorkspaceRemoveEmail,
 	sendWorkspaceDeleteEmail,
 	sendVideoShareEmail,
-  sendWorkspaceInvitationEmail,
+	sendWorkspaceInvitationEmail,
 } from "../../infrastructure/emailNotifications";
 
 import {
@@ -18,12 +18,17 @@ import {
 	sendWorkspaceRemovePushNotification,
 	sendWorkspaceDeletePushNotification,
 	sendVideoSharePushNotification,
-  sendWorkspaceInvitationPushNotification,
+	sendWorkspaceInvitationPushNotification,
 } from "../../infrastructure/pushNotifications";
 
 import { logger } from "../../logger/logger";
 import prisma from "../../prismaClient";
-import { NOTIFICATION_EVENT_TYPE, NotificationEvent } from "../../types/types";
+import {
+	NOTIFICATION_EVENT_TYPE,
+	NotificationEvent,
+	WorkspaceInvitationNotificationEvent,
+} from "../../types/types";
+import { getNotificationMessage } from "../../utils/getNotificationMessages.utils";
 
 /**
  * Helper function to retrieve user and process notifications based on preferences.
@@ -32,7 +37,8 @@ async function processNotification<T extends NotificationEvent>(
 	event: T,
 	getPreferences: (user: User) => { email?: boolean; push?: boolean } | null,
 	sendEmail: (user: User, event: T) => void,
-	sendPush: (user: User, event: T) => void
+	sendPush: (user: User, event: T, data: Notification) => void,
+	notificationType: Notification["type"]
 ) {
 	if (!event.userId) {
 		logger.warn(`User not found for userId: ${event.userId}`);
@@ -48,14 +54,38 @@ async function processNotification<T extends NotificationEvent>(
 		return false;
 	}
 
+	console.log("user: ", user);
+
 	logger.debug("User details:", JSON.stringify(user, null, 2));
 
-	const prefs = getPreferences(user);
-	if (prefs?.email) {
-		await sendEmail(user, event);
-	}
-	if (prefs?.push) {
-		await sendPush(user, event);
+	try {
+		const { title, content } = getNotificationMessage(event, user);
+
+		const newNotification = await prisma.notification.create({
+			data: {
+				userId: user.id,
+				title: title,
+				content: content, // Customize this
+				type: notificationType,
+				status: "UNREAD",
+				data: event?.data || {},
+			},
+		});
+
+		const prefs = getPreferences(user);
+		console.log(prefs);
+
+		if (prefs?.email) {
+			logger.debug(`🗽 sending email notification for ${user.email}`);
+			sendEmail(user, event);
+		}
+		if (prefs?.push) {
+			logger.debug(`🗽 sending push notification for ${user.fcmToken}`);
+			sendPush(user, event, newNotification);
+		}
+	} catch (error) {
+		logger.error("Error creating notification:", error);
+		return false;
 	}
 
 	return true;
@@ -67,7 +97,8 @@ async function handleFirstView(event: NotificationEvent) {
 		event,
 		(user) => user.firstViewNotifications,
 		sendFirstViewEmail,
-		sendFirstViewPushNotification
+		sendFirstViewPushNotification,
+		"FIRST_VIEW"
 	);
 }
 
@@ -76,7 +107,8 @@ async function handleComment(event: NotificationEvent) {
 		event,
 		(user) => user.commentNotifications,
 		sendCommentEmail,
-		sendCommentPushNotification
+		sendCommentPushNotification,
+		"COMMENT"
 	);
 }
 
@@ -85,7 +117,8 @@ async function handleTranscriptSuccess(event: NotificationEvent) {
 		event,
 		(user) => user.transcriptSuccessNotifications,
 		sendTranscriptSuccessEmail,
-		sendTranscriptSuccessPushNotification
+		sendTranscriptSuccessPushNotification,
+		"TRANSCRIPT_SUCCESS"
 	);
 }
 
@@ -94,7 +127,8 @@ async function handleTranscriptFailure(event: NotificationEvent) {
 		event,
 		(user) => user.transcriptFailureNotifications,
 		sendTranscriptFailureEmail,
-		sendTranscriptFailurePushNotification
+		sendTranscriptFailurePushNotification,
+		"TRANSCRIPT_FAILURE"
 	);
 }
 
@@ -103,7 +137,8 @@ async function handleWorkspaceRemove(event: NotificationEvent) {
 		event,
 		(user) => user.removeFromWorkspaceNotification,
 		sendWorkspaceRemoveEmail,
-		sendWorkspaceRemovePushNotification
+		sendWorkspaceRemovePushNotification,
+		"WORKSPACE_REMOVE"
 	);
 }
 
@@ -112,7 +147,8 @@ async function handleWorkspaceDelete(event: NotificationEvent) {
 		event,
 		(user) => user.workspaceDeleteNotification,
 		sendWorkspaceDeleteEmail,
-		sendWorkspaceDeletePushNotification
+		sendWorkspaceDeletePushNotification,
+		"WORKSPACE_DELETE"
 	);
 }
 
@@ -121,21 +157,42 @@ async function handleVideoShare(event: NotificationEvent) {
 		event,
 		(user) => user.shareNotifications,
 		sendVideoShareEmail,
-		sendVideoSharePushNotification
+		sendVideoSharePushNotification,
+		"VIDEO_SHARE"
 	);
 }
 
-async function handleWorkspaceInvitation(event: NotificationEvent) {
-	const result = await processNotification(
-		event,
-		(user) => user.workspaceInvitationNotification,
-		sendWorkspaceInvitationEmail,
-		sendWorkspaceInvitationPushNotification
-	);
+async function handleWorkspaceInvitation(
+	event: WorkspaceInvitationNotificationEvent
+) {
+	event.invites.forEach(async (invitation) => {
+		const eventData = {
+			eventType: event.eventType,
+			email: invitation.receiverEmail,
+			url: invitation.url,
+			senderId: event.senderId,
+			workspaceId: event.workspaceId,
+			workspaceName: event.workspaceName,
+			timestamp: event.timestamp,
+			userId: invitation.receiverId,
+			data: {
+				invitationId: invitation.invitationId,
+				url: invitation.url,
+				invitationStatus: "PENDING", 
+			},
+		};
+		const result = await processNotification(
+			eventData,
+			(user) => user.workspaceInvitationNotification,
+			sendWorkspaceInvitationEmail,
+			sendWorkspaceInvitationPushNotification,
+			"WORKSPACE_INVITATION"
+		);
 
-	if (!result) {
-		sendWorkspaceInvitationEmail(null, event);
-	}
+		if (!result) {
+			sendWorkspaceInvitationEmail(null, eventData);
+		}
+	});
 }
 
 /**
