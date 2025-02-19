@@ -49,6 +49,9 @@ app.use(morgan('dev'));
 app.use(passport.initialize());
 
 app.use('/api', router);
+app.use("/", (req, res) => {
+	res.send("pong");
+});
 app.use('/metrics', async (req, res)=>{
   res.setHeader('Content-Type', promClient.register.contentType);
   const metrics = await promClient.register.metrics()
