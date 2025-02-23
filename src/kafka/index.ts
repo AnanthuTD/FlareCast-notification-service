@@ -7,7 +7,7 @@ import { handleUserVerifiedEvent } from "./handlers/userVerifiedEvent.handler";
 import { invitationStatusUpdateHandler } from "./handlers/invitationStatusUpdate.handler";
 
 // Create topics and start consuming messages
-createTopic([TOPICS.EMAIL_NOTIFICATION, TOPICS.NOTIFICATION_EVENT]).then(() => {
+createTopic(Object.values(TOPICS)).then(() => {
 	logger.info("✅ Topic created successfully");
 
 	// Define topic handlers

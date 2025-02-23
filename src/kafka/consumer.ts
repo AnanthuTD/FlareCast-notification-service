@@ -5,60 +5,60 @@ import { KafkaMessage } from "kafkajs";
 
 const consumer = kafka.consumer({
 	groupId: "notification-service",
-  allowAutoTopicCreation: true,
+	allowAutoTopicCreation: true,
 });
 
 type TopicHandler = (
-  value: any,
-  topic: string,
-  partition: number,
-  message: KafkaMessage
+	value: any,
+	topic: string,
+	partition: number,
+	message: KafkaMessage
 ) => void;
 
 // Define the type for the topicHandlers object
 type TopicHandlers = {
-  [key in TOPICS]?: TopicHandler;
+	[key in TOPICS]?: TopicHandler;
 };
 
 export async function consumeMessages(topicHandlers: TopicHandlers) {
-  const topics = Object.keys(topicHandlers) as TOPICS[];
+	const topics = Object.keys(topicHandlers) as TOPICS[];
 
-  logger.info("⌛ Consuming messages from topic(s):", topics);
+	logger.info("⌛ Consuming messages from topic(s):", topics);
 
-  try {
-    // Connect to the Kafka broker
-    await consumer.connect();
+	try {
+		// Connect to the Kafka broker
+		await consumer.connect();
 
-    // Subscribe to the specified topics
-    await consumer.subscribe({ topics });
+		// Subscribe to the specified topics
+		await consumer.subscribe({ topics, fromBeginning: true });
 
-    // Start consuming messages
-    await consumer.run({
-      eachMessage: async ({ topic, partition, message }) => {
-        logger.info({
-          topic,
-          partition,
-          message: message.value?.toString(),
-        });
+		// Start consuming messages
+		await consumer.run({
+			eachMessage: async ({ topic, partition, message }) => {
+				logger.info({
+					topic,
+					partition,
+					message: message.value?.toString(),
+				});
 
-        let { value } = message;
+				let { value } = message;
 
-        if (value) {
-          const parsedValue = JSON.parse(value.toString()) as object;
+				if (value) {
+					const parsedValue = JSON.parse(value.toString()) as object;
 
-          // Get the handler for the current topic
-          const handler = topicHandlers[topic as TOPICS];
+					// Get the handler for the current topic
+					const handler = topicHandlers[topic as TOPICS];
 
-          if (handler) {
-            // Call the handler for the topic
-            handler(parsedValue, topic, partition, message);
-          } else {
-            logger.warn(`No handler defined for topic: ${topic}`);
-          }
-        }
-      },
-    });
-  } catch (error) {
-    logger.error("🔴 Error consuming messages:", error);
-  }
+					if (handler) {
+						// Call the handler for the topic
+						handler(parsedValue, topic, partition, message);
+					} else {
+						logger.warn(`No handler defined for topic: ${topic}`);
+					}
+				}
+			},
+		});
+	} catch (error) {
+		logger.error("🔴 Error consuming messages:", error);
+	}
 }

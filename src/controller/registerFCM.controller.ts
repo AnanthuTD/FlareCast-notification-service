@@ -15,7 +15,7 @@ export const registerFCMTokenController = <RequestHandler>(async (req, res) => {
 	}
 
 	try {
-		// Update the FCM token for the delivery partner
+		// Update the FCM token for the User
 		const updatedUser = await prisma.user.update({
 			where: { id: user.id },
 			data: { fcmToken },
@@ -24,16 +24,16 @@ export const registerFCMTokenController = <RequestHandler>(async (req, res) => {
 
 		// Check if the partner was found and updated
 		if (!updatedUser.id) {
-			return res.status(404).json({ message: "Delivery partner not found." });
+			return res.status(404).json({ message: "User not found." });
 		}
 
 		// Send a success response
 		res.status(200).json({ message: "FCM token updated successfully." });
 	} catch (error) {
+		console.error("Error updating FCM token:", error);
 		if (error instanceof PrismaClientKnownRequestError) {
 			return res.status(400).json({ message: error.message });
 		}
-		console.error("Error updating FCM token:", error);
 		res
 			.status(500)
 			.json({ message: "An error occurred while updating the FCM token." });
