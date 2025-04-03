@@ -61,6 +61,23 @@ async function processNotification<T extends NotificationEvent>(
 	try {
 		const { title, content } = getNotificationMessage(event, user);
 
+		let oldNotifications;
+
+		if (event?.data?.invitationId) {
+			oldNotifications = await prisma.notification.findFirst({
+				where: {
+					data: {
+						invitationId: event.data?.invitationId,
+					},
+				},
+			});
+		}
+
+		if (oldNotifications) {
+			logger.debug(`An invitation with the same invitationId already exists!`);
+			return;
+		}
+
 		const newNotification = await prisma.notification.create({
 			data: {
 				userId: user.id,
@@ -178,7 +195,7 @@ async function handleWorkspaceInvitation(
 			data: {
 				invitationId: invitation.invitationId,
 				url: invitation.url,
-				invitationStatus: "PENDING", 
+				invitationStatus: "PENDING",
 			},
 		};
 		const result = await processNotification(
