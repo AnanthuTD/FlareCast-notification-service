@@ -3,13 +3,16 @@ import passport from "passport";
 import { registerFCMTokenController } from "../controller/registerFCM.controller";
 import { PreferenceController } from "../controller/preference.controller";
 import NotificationController from "../controller/notification.controller";
+import { extractUserInfo } from "../middlewares/extractUserDataFromHeader";
 
 const preferenceController = new PreferenceController();
 const notificationController = new NotificationController();
 
 const router = express.Router();
 
-router.use(passport.authenticate("jwt", { session: false }));
+// router.use(passport.authenticate("jwt", { session: false }));
+
+router.use(extractUserInfo)
 
 router.post("/register/fcm", registerFCMTokenController);
 
